@@ -1,7 +1,7 @@
 import UIKit
 import CoreMotion
 
-class ViewController: UIViewController  {
+class ViewController: UIViewController, UITextFieldDelegate  {
     
     let motionModel = MotionModel()
 
@@ -10,7 +10,8 @@ class ViewController: UIViewController  {
     @IBOutlet weak var progressBar: UIProgressView!
     @IBOutlet weak var stepsTodayLabel: UILabel!
     @IBOutlet weak var stepsYesterdayLabel: UILabel!
-    
+    @IBOutlet weak var currentGoalLabel: UILabel!
+    @IBOutlet weak var stepGoalTextField: UITextField!
     
     
     // MARK: =====UI Lifecycle=====
@@ -25,9 +26,16 @@ class ViewController: UIViewController  {
         
         view.addSubview(stepsTodayLabel)
         view.addSubview(stepsYesterdayLabel)
+        
+        stepGoalTextField.delegate = self
                 
         setupLayout()
         fetchAndDisplaySteps()
+        loadStoredStepGoal()
+        
+        // tap outside text box to have it disappear
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+        view.addGestureRecognizer(tapGesture)
     }
 
 
@@ -79,8 +87,41 @@ extension ViewController: MotionDelegate{
             print("Steps Today: \(self.motionModel.stepsToday)")
             print("Steps Yesterday: \(self.motionModel.stepsYesterday)")
         }
-        
+
+    }
     
+    // Save step goal when text field editing is done
+    func textFieldDidEndEditing(_ textField: UITextField) {
+        if let goalText = textField.text, let stepGoal = Int(goalText), stepGoal > 0 {
+            saveStepGoal(stepGoal)
+        } else {
+            // If no valid input is given, set the default goal to 5000
+            saveStepGoal(5000)
+        }
+    }
+        
+    // Save step goal to UserDefaults
+    func saveStepGoal(_ goal: Int) {
+        UserDefaults.standard.set(goal, forKey: "stepGoal")
+        currentGoalLabel.text = "Current Goal: \(goal) steps"
+    }
+        
+    // Load stored step goal when the app starts, default to 5000 if none is set
+    func loadStoredStepGoal() {
+        let savedGoal = UserDefaults.standard.value(forKey: "stepGoal") as? Int ?? 5000
+        currentGoalLabel.text = "Current Goal: \(savedGoal) steps"
+        stepGoalTextField.text = "\(savedGoal)"
+    }
+    
+    // return to dismiss keyboard
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        textField.resignFirstResponder()  // Dismisses the keyboard
+        return true
+    }
+    
+    //tap dismiss keyboard
+    @objc func dismissKeyboard() {
+        view.endEditing(true)
     }
     
     
