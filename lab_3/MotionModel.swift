@@ -67,40 +67,41 @@ class MotionModel{
     }
     
     func fetchStepsForToday() {
-            let calendar = Calendar.current
-            let startOfDay = calendar.startOfDay(for: Date())
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: Date())
             
-            if CMPedometer.isStepCountingAvailable() {
-                pedometer.startUpdates(from: startOfDay) { [weak self] data, error in
-                    if let steps = data?.numberOfSteps {
-                        self?.stepsToday = Int(truncating: steps)
-                    } else {
-                        self?.stepsToday = 0  // Set to 0 if error occurs
-                    }
+        if CMPedometer.isStepCountingAvailable() {
+            pedometer.startUpdates(from: startOfDay) { [weak self] data, error in
+                if let steps = data?.numberOfSteps {
+                    self?.stepsToday = Int(truncating: steps)
+                } else {
+                    self?.stepsToday = 0  // Set to 0 if error occurs
                 }
-            } else {
-                stepsToday = 0
             }
+        } else {
+            stepsToday = 0
         }
+    }
     
     func fetchStepsForYesterday() {
-            let calendar = Calendar.current
-            let now = Date()
-            let startOfToday = calendar.startOfDay(for: now)
-            let startOfYesterday = calendar.date(byAdding: .day, value: -1, to: startOfToday)
+        let calendar = Calendar.current
+        let now = Date()
+        let startOfToday = calendar.startOfDay(for: now)
+        let startOfYesterday = calendar.date(byAdding: .day, value: -1, to: startOfToday)
             
-            if CMPedometer.isStepCountingAvailable() {
-                pedometer.queryPedometerData(from: startOfYesterday!, to: startOfToday) { [weak self] data, error in
-                    if let steps = data?.numberOfSteps {
-                        self?.stepsYesterday = Int(truncating: steps)
-                    } else {
-                        self?.stepsYesterday = 0  // Set to 0 if error occurs
-                    }
+        if CMPedometer.isStepCountingAvailable() {
+            pedometer.queryPedometerData(from: startOfYesterday!, to: startOfToday) { [weak self] data, error in
+                if let steps = data?.numberOfSteps {
+                    self?.stepsYesterday = Int(truncating: steps)
+                } else {
+                    self?.stepsYesterday = 0  // Set to 0 if error occurs
                 }
-            } else {
-                stepsYesterday = 0
             }
+        } else {
+            stepsYesterday = 0
         }
+    }
+    
   
     
     

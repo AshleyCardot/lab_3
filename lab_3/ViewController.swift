@@ -27,11 +27,13 @@ class ViewController: UIViewController, UITextFieldDelegate  {
         view.addSubview(stepsTodayLabel)
         view.addSubview(stepsYesterdayLabel)
         
+        
         stepGoalTextField.delegate = self
                 
         setupLayout()
         fetchAndDisplaySteps()
         loadStoredStepGoal()
+        
         
         // tap outside text box to have it disappear
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
@@ -46,10 +48,24 @@ class ViewController: UIViewController, UITextFieldDelegate  {
 
 extension ViewController: MotionDelegate{
     // MARK: =====Motion Delegate Methods=====
-    
     func activityUpdated(activity:CMMotionActivity){
         
-        self.activityLabel.text = "🚶: \(activity.walking), 🏃: \(activity.running), 🧘‍♀️: \(activity.stationary), 💃: \(activity.unknown), 🚴‍♂️: \(activity.cycling),  🚗: \(activity.automotive)"
+        //self.activityLabel.text = "🚶: \(activity.walking), 🏃: \(activity.running), 🧘‍♀️: \(activity.stationary), 💃: \(activity.unknown), 🚴‍♂️: \(activity.cycling),  🚗: \(activity.automotive)"
+        
+        // if statement to print current activity
+        if activity.walking {
+            self.activityLabel.text = "Walking🚶"
+        }else if activity.running {
+            self.activityLabel.text = "Running 🏃"
+        }else if activity.stationary {
+            self.activityLabel.text = "Stationary 🧘‍♀️"
+        }else if activity.unknown {
+            self.activityLabel.text = "Unknown 💃"
+        }else if activity.cycling {
+            self.activityLabel.text = "Cycling 🚴‍♂️"
+        }else if activity.automotive {
+            self.activityLabel.text = "Automotive 🚗"
+        }
     }
     
     func setupLayout() {
@@ -62,31 +78,47 @@ extension ViewController: MotionDelegate{
     }
     
     func pedometerUpdated(pedData:CMPedometerData){
+        
+        let todaySteps = self.motionModel.stepsToday
+        let savedGoal = UserDefaults.standard.value(forKey: "stepGoal") as? Int ?? 5000
 
         // display the output directly on the phone
         DispatchQueue.main.async {
-            // this goes into the large gray area on view
-            //self.debugLabel.text = "\(pedData.description)"
             
-            // this updates the progress bar with number of steps, assuming 100 is the maximum for the steps
-            
-            self.progressBar.progress = pedData.numberOfSteps.floatValue / 100
+            self.progressBar.progress = Float(todaySteps) / Float(savedGoal)
+        }
+    }
+    
+    func updatePedomter(){
+        
+        let todaySteps = self.motionModel.stepsToday
+        let savedGoal = UserDefaults.standard.value(forKey: "stepGoal") as? Int ?? 5000
+        
+    
+
+        // display the output directly on the phone
+        DispatchQueue.main.async {
+            self.progressBar.progress = Float(todaySteps) / Float(savedGoal)
+            print("Progress: \(self.progressBar.progress)")
         }
     }
     
     func fetchAndDisplaySteps() {
-        motionModel.fetchStepsForToday()
-        motionModel.fetchStepsForYesterday()
             
         // Delay to allow time for steps to be fetched
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+        DispatchQueue.main.async {
             self.stepsTodayLabel.text = "Steps Today: \(self.motionModel.stepsToday)"
             self.stepsYesterdayLabel.text = "Steps Yesterday: \(self.motionModel.stepsYesterday)"
             
             // Print to console
-            print("Steps Today: \(self.motionModel.stepsToday)")
-            print("Steps Yesterday: \(self.motionModel.stepsYesterday)")
+            //print("Steps Today: \(self.motionModel.stepsToday)")
+            //print("Steps Yesterday: \(self.motionModel.stepsYesterday)")
+            
         }
+        
+        updatePedomter()
+        
+
 
     }
     
