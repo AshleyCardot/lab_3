@@ -2,14 +2,14 @@ import SpriteKit
 import CoreMotion
 
 class GameScene: SKScene, SKPhysicsContactDelegate {
-
+    
     let player = SKShapeNode(circleOfRadius: 30)
     let obstacle = SKShapeNode(rectOf: CGSize(width: 60, height: 60))
     let motionManager = CMMotionManager()
-
+    
     var collisionCount = 0  // Counter for number of collisions
     let collisionLabel = SKLabelNode(text: "Collisions: 0")
-
+    
     override func didMove(to view: SKView) {
         self.backgroundColor = .white
         
@@ -28,31 +28,31 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // Set up obstacle
         obstacle.fillColor = .red
-        obstacle.position = CGPoint(x: self.size.width / 2, y: self.size.height - 100)
+        obstacle.position = CGPoint(x: self.size.width / 2, y: self.size.height - 120)
         obstacle.physicsBody = SKPhysicsBody(rectangleOf: obstacle.frame.size)
         obstacle.physicsBody?.isDynamic = false
         obstacle.physicsBody?.categoryBitMask = 0x1 << 1  // Obstacle category
         obstacle.physicsBody?.collisionBitMask = 0x1 << 0  // Collide only with player
         obstacle.physicsBody?.contactTestBitMask = 0x1 << 0  // Detect contact only with player
         addChild(obstacle)
-    
+        
         // Set up edge boundaries around the screen
         let screenEdge = SKPhysicsBody(edgeLoopFrom: self.frame)
         self.physicsBody = screenEdge // Make the screen edges act as boundaries only
-
+        
         // Set contact delegate
         physicsWorld.contactDelegate = self
-
+        
         // Set up collision label
         collisionLabel.fontColor = .black
-        collisionLabel.fontSize = 24
-        collisionLabel.position = CGPoint(x: self.size.width / 2, y: self.size.height - 50)
+        collisionLabel.fontSize = 36  // Increase font size for better visibility
+        collisionLabel.position = CGPoint(x: self.size.width / 2, y: self.size.height - 80)  // Adjust position
         addChild(collisionLabel)
-
+        
         // Start accelerometer updates
         startAccelerometerUpdates()
     }
-
+    
     func startAccelerometerUpdates() {
         if motionManager.isAccelerometerAvailable {
             motionManager.startAccelerometerUpdates(to: OperationQueue.main) { [weak self] data, error in
@@ -65,13 +65,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             }
         }
     }
-
+    
     func didBegin(_ contact: SKPhysicsContact) {
         if (contact.bodyA.node == player && contact.bodyB.node == obstacle) ||
-           (contact.bodyB.node == player && contact.bodyA.node == obstacle) {
+            (contact.bodyB.node == player && contact.bodyA.node == obstacle) {
             
             print("Collision detected with obstacle!")
-
+            
             // Flash the obstacle on collision
             let flashAction = SKAction.sequence([
                 SKAction.colorize(with: .yellow, colorBlendFactor: 1.0, duration: 0.1),
@@ -79,7 +79,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 SKAction.colorize(with: .red, colorBlendFactor: 1.0, duration: 0.1)
             ])
             obstacle.run(flashAction)
-
+            
             // Increment the collision counter and update the label
             collisionCount += 1
             collisionLabel.text = "Collisions: \(collisionCount)"
