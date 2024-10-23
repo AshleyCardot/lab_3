@@ -86,8 +86,11 @@
                     <navigationItem key="navigationItem" id="TIj-su-3q0"/>
                     <connections>
                         <outlet property="activityLabel" destination="Dcs-28-Ieq" id="nCq-Gq-m18"/>
+                        <outlet property="activityStatusLabel" destination="cBV-hU-Ajk" id="LBv-c1-0K8"/>
                         <outlet property="currentGoalLabel" destination="3Qh-fG-aGe" id="qxk-VO-QKs"/>
+                        <outlet property="playGameButton" destination="sce-iQ-7P3" id="k0u-RF-IH4"/>
                         <outlet property="progressBar" destination="u5j-9b-qeB" id="WXR-sq-AIu"/>
+                        <outlet property="setStepGoalLabel" destination="Dpu-Rm-Fd1" id="Ubq-Yg-gwQ"/>
                         <outlet property="stepGoalTextField" destination="AUa-x8-cH4" id="dc3-sf-bcU"/>
                         <outlet property="stepsTodayLabel" destination="l26-tS-jna" id="lFP-tT-sTv"/>
                         <outlet property="stepsYesterdayLabel" destination="P1y-1I-zfh" id="fO1-Gg-pnf"/>
