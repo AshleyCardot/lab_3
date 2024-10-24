@@ -13,7 +13,6 @@ protocol MotionDelegate {
     func activityUpdated(activity: CMMotionActivity)
     func pedometerUpdated(pedData: CMPedometerData)
 }
-
 class MotionModel {
 
     // MARK: - Class Variables
@@ -40,14 +39,19 @@ class MotionModel {
             pedometer.startUpdates(from: Date()) { [weak self] pedData, error in
                 if let unwrappedPedData = pedData,
                    let delegate = self?.delegate {
-                    // Update stepsToday
-                    self?.stepsToday = unwrappedPedData.numberOfSteps.intValue
+                    // Update stepsToday by adding the steps from the pedometer
+                    if let newSteps = self?.stepsToday, let pedometerSteps = pedData?.numberOfSteps.intValue {
+                        self?.stepsToday = newSteps + pedometerSteps // Cumulative addition
+                    } else {
+                        self?.stepsToday = pedData?.numberOfSteps.intValue ?? 0
+                    }
                     delegate.pedometerUpdated(pedData: unwrappedPedData)
                 }
             }
         }
     }
 
+    // Fetch steps for yesterday
     func fetchStepsForYesterday(completion: @escaping () -> Void) {
         let calendar = Calendar.current
         let now = Date()
@@ -71,6 +75,30 @@ class MotionModel {
             }
         } else {
             stepsYesterday = 0
+            completion()
+        }
+    }
+
+    // Fetch steps for today 
+    func fetchStepsForToday(completion: @escaping () -> Void) {
+        let calendar = Calendar.current
+        let now = Date()
+        let startOfToday = calendar.startOfDay(for: now)
+
+        if CMPedometer.isStepCountingAvailable() {
+            pedometer.queryPedometerData(from: startOfToday, to: now) { [weak self] data, error in
+                if let steps = data?.numberOfSteps {
+                    // Add the fetched steps to the current total
+                    self?.stepsToday += steps.intValue
+                } else {
+                    self?.stepsToday += 0  // Set to 0 if error occurs
+                }
+                DispatchQueue.main.async {
+                    completion()
+                }
+            }
+        } else {
+            stepsToday += 0
             completion()
         }
     }

@@ -36,15 +36,15 @@ class ViewController: UIViewController, UITextFieldDelegate {
         // Disable the play game button by default
         playGameButton.isEnabled = false
         
-        // Fetch steps for yesterday
+        // Fetch steps for yesterday and today
         fetchStepsForYesterday()
+        fetchStepsForToday()
         
         styleAndCenterElements()
         
         // Dismiss keyboard on tap outside text field
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
         view.addGestureRecognizer(tapGesture)
-        
     }
     
     func fetchStepsForYesterday() {
@@ -53,13 +53,22 @@ class ViewController: UIViewController, UITextFieldDelegate {
             self.fetchAndDisplaySteps()
             
             // Check if the user met their step goal yesterday
-            if self.checkStepGoalBeforePlaying() {
-                // Enable the play game button
-                self.playGameButton.isEnabled = true
-            } else {
-                // Disable the play game button
-                self.playGameButton.isEnabled = false
-            }
+            self.playGameButton.isEnabled = self.checkStepGoalBeforePlaying()
+        }
+    }
+    
+    // Fetch steps for today using the new method
+    func fetchStepsForToday() {
+        self.motionModel.fetchStepsForToday {
+            // Update the UI based on today's fetched steps
+            self.fetchAndDisplaySteps()
+        }
+    }
+    
+    func fetchAndDisplaySteps() {
+        DispatchQueue.main.async {
+            self.stepsTodayLabel.text = "Steps Today: \(self.motionModel.stepsToday)"
+            self.stepsYesterdayLabel.text = "Steps Yesterday: \(self.motionModel.stepsYesterday)"
         }
     }
     
@@ -78,7 +87,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
             let gameVC = GameViewController()
             navigationController?.pushViewController(gameVC, animated: true)
         } else {
-            // Show alert to inform user they haven't met their goal
+            // Alert for not having met the goal
             let alert = UIAlertController(title: "Goal Not Met", message: "You need to meet your step goal from yesterday to play the game.", preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
             self.present(alert, animated: true, completion: nil)
@@ -87,7 +96,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
     
     // MARK: - Algin Elements
     func styleAndCenterElements() {
-        // Disable autoresizing mask translation to allow programmatic constraints
+        // manual constraints
         progressBar.translatesAutoresizingMaskIntoConstraints = false
         stepsTodayLabel.translatesAutoresizingMaskIntoConstraints = false
         stepsYesterdayLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -97,10 +106,10 @@ class ViewController: UIViewController, UITextFieldDelegate {
         playGameButton.translatesAutoresizingMaskIntoConstraints = false
         setStepGoalLabel.translatesAutoresizingMaskIntoConstraints = false
 
-        // Vertical spacing between elements
+        // Vertical spacing
         let verticalSpacing: CGFloat = 30.0
         
-        // Center the progress bar horizontally and position it at the top with some padding
+        // Center the progress bar horizontally and position it at the top
         NSLayoutConstraint.activate([
             progressBar.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             progressBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 80),
@@ -128,9 +137,9 @@ class ViewController: UIViewController, UITextFieldDelegate {
         // Center the stepGoalTextField below stepsYesterdayLabel
         NSLayoutConstraint.activate([
             stepGoalTextField.topAnchor.constraint(equalTo: stepsYesterdayLabel.bottomAnchor, constant: verticalSpacing),
-            stepGoalTextField.leadingAnchor.constraint(equalTo: view.centerXAnchor, constant: 20), // Adjust text field position slightly
+            stepGoalTextField.leadingAnchor.constraint(equalTo: view.centerXAnchor, constant: 20),
             stepGoalTextField.widthAnchor.constraint(equalToConstant: 150),
-            stepGoalTextField.heightAnchor.constraint(equalToConstant: 40) // Set height for better appearance
+            stepGoalTextField.heightAnchor.constraint(equalToConstant: 40)
         ])
 
         // Center and space the currentGoalLabel below the stepGoalTextField
@@ -143,13 +152,13 @@ class ViewController: UIViewController, UITextFieldDelegate {
             let activityStackView = UIStackView(arrangedSubviews: [activityStatusLabel, activityLabel])
             activityStackView.axis = .horizontal
             activityStackView.alignment = .center
-            activityStackView.spacing = 8.0 // Space between the label and status
+            activityStackView.spacing = 8.0
             activityStackView.translatesAutoresizingMaskIntoConstraints = false
             
             // Add stack view to the main view
             view.addSubview(activityStackView)
             
-            // Center and position the stack view
+            // Center the stack view
             NSLayoutConstraint.activate([
                 activityStackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
                 activityStackView.topAnchor.constraint(equalTo: currentGoalLabel.bottomAnchor, constant: verticalSpacing)
@@ -198,19 +207,12 @@ extension ViewController: MotionDelegate {
         }
     }
     
-    func fetchAndDisplaySteps() {
-        DispatchQueue.main.async {
-            self.stepsTodayLabel.text = "Steps Today: \(self.motionModel.stepsToday)"
-            self.stepsYesterdayLabel.text = "Steps Yesterday: \(self.motionModel.stepsYesterday)"
-        }
-    }
-    
     // Save step goal when text field editing is done
     func textFieldDidEndEditing(_ textField: UITextField) {
         if let goalText = textField.text, let stepGoal = Int(goalText), stepGoal > 0 {
             saveStepGoal(stepGoal)
         } else {
-            // If no valid input is given, set the default goal to 5000
+            // default to 5000
             saveStepGoal(5000)
         }
     }
@@ -227,7 +229,7 @@ extension ViewController: MotionDelegate {
         }
     }
     
-    // Load stored step goal when the app starts, default to 5000 if none is set
+    // Load stored step goal when the app starts
     func loadStoredStepGoal() {
         let savedGoal = UserDefaults.standard.value(forKey: "stepGoal") as? Int ?? 5000
         currentGoalLabel.text = "Current Goal: \(savedGoal) steps"
