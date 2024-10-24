@@ -74,26 +74,4 @@ class MotionModel {
             completion()
         }
     }
-    
-    func fetchStepsFromToday(completion: @escaping () -> Void) {
-        let calendar = Calendar.current
-        let now = Date()
-        let startOfToday = calendar.startOfDay(for: now)
-
-        if CMPedometer.isStepCountingAvailable() {
-            pedometer.queryPedometerData(from: startOfToday, to: now) { [weak self] data, error in
-                if let steps = data?.numberOfSteps {
-                    self?.stepsToday = steps.intValue
-                } else {
-                    self?.stepsToday = 0  // Set to 0 if error occurs
-                }
-                DispatchQueue.main.async {
-                    completion()
-                }
-            }
-        } else {
-            stepsToday = 0
-            completion()
-        }
-    }
 }

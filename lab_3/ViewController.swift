@@ -39,8 +39,6 @@ class ViewController: UIViewController, UITextFieldDelegate {
         // Fetch steps for yesterday
         fetchStepsForYesterday()
         
-        fetchStepsForToday()
-        
         styleAndCenterElements()
         
         // Dismiss keyboard on tap outside text field
@@ -64,13 +62,6 @@ class ViewController: UIViewController, UITextFieldDelegate {
             }
         }
     }
-    
-    func fetchStepsForToday() {
-        self.motionModel.fetchStepsFromToday {
-            self.fetchAndDisplaySteps()
-        }
-    }
-    
     
     func checkStepGoalBeforePlaying() -> Bool {
         let savedGoal = UserDefaults.standard.value(forKey: "stepGoal") as? Int ?? 5000
