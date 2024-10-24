@@ -45,7 +45,9 @@ class ViewController: UIViewController, UITextFieldDelegate {
         // Dismiss keyboard on tap outside text field
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
         view.addGestureRecognizer(tapGesture)
+
     }
+    
     
     func fetchStepsForYesterday() {
         self.motionModel.fetchStepsForYesterday {
@@ -62,7 +64,15 @@ class ViewController: UIViewController, UITextFieldDelegate {
         self.motionModel.fetchStepsForToday {
             // Update the UI based on today's fetched steps
             self.fetchAndDisplaySteps()
+            
+            self.updateProgressBar()
         }
+    }
+    
+    func updateProgressBar() {
+        let todaySteps = self.motionModel.stepsToday
+        let savedGoal = UserDefaults.standard.value(forKey: "stepGoal") as? Int ?? 5000
+        self.progressBar.progress = Float(todaySteps) / Float(savedGoal)
     }
     
     func fetchAndDisplaySteps() {
@@ -221,6 +231,10 @@ extension ViewController: MotionDelegate {
     func saveStepGoal(_ goal: Int) {
         UserDefaults.standard.set(goal, forKey: "stepGoal")
         currentGoalLabel.text = "Current Goal: \(goal) steps"
+        let todaySteps = self.motionModel.stepsToday
+        let savedGoal = UserDefaults.standard.value(forKey: "stepGoal") as? Int ?? 5000
+        self.progressBar.progress = Float(todaySteps) / Float(savedGoal)
+        
         // Re-check step goal after updating
         if self.checkStepGoalBeforePlaying() {
             self.playGameButton.isEnabled = true
